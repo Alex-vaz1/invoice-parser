@@ -1,4 +1,4 @@
-package com.parser;
+package com.parser.parser;
 
 import java.io.InputStream;
 import org.junit.jupiter.api.Test;

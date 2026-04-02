@@ -1,4 +1,4 @@
-package com.parser;
+package com.parser.parser;
 
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
