@@ -1,8 +1,8 @@
 package com.parser.controller;
 
-import com.parser.exception.InvoiceParseException;
-import com.parser.model.InvoiceData;
-import com.parser.service.InvoiceParserService;
+import com.parser.exception.ParserException;
+import com.parser.model.DatosFactura;
+import com.parser.service.FacturaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,20 +14,20 @@ import java.io.IOException;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/invoice")
-public class InvoiceController {
+@RequestMapping("/api/factura")
+public class FacturaController {
 
-    private final InvoiceParserService parserService;
+    private final FacturaService facturaService;
 
-    public InvoiceController(InvoiceParserService parserService) {
-        this.parserService = parserService;
+    public FacturaController(FacturaService facturaService) {
+        this.facturaService = facturaService;
     }
 
-    @PostMapping("/parse")
-    public ResponseEntity<?> parseInvoice(@RequestParam("file") MultipartFile file) {
+    @PostMapping("/parsear")
+    public ResponseEntity<?> parsearFactura(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest()
-                    .body(Map.of("error", "El archivo está vacío"));
+                    .body(Map.of("error", "El archivo esta vacio"));
         }
 
         String contentType = file.getContentType();
@@ -37,14 +37,14 @@ public class InvoiceController {
         }
 
         try {
-            InvoiceData data = parserService.parseInvoice(file.getBytes());
-            return ResponseEntity.ok(data);
-        } catch (InvoiceParseException e) {
+            DatosFactura datos = facturaService.parsearFactura(file.getBytes());
+            return ResponseEntity.ok(datos);
+        } catch (ParserException e) {
             return ResponseEntity.badRequest()
                     .body(Map.of("error", e.getMessage()));
         } catch (IOException e) {
             return ResponseEntity.badRequest()
-                    .body(Map.of("error", "Error al leer el archivo PDF: " + e.getMessage()));
+                    .body(Map.of("error", "Error al leer el PDF: " + e.getMessage()));
         }
     }
 }

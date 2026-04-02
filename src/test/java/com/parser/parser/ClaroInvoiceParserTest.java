@@ -1,7 +1,7 @@
 package com.parser.parser;
 
-import com.parser.exception.InvoiceParseException;
-import com.parser.model.InvoiceData;
+import com.parser.exception.ParserException;
+import com.parser.model.DatosFactura;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -10,8 +10,8 @@ class ClaroInvoiceParserTest {
     private final ClaroInvoiceParser parser = new ClaroInvoiceParser();
 
     @Test
-    void parse_withValidInvoiceText_returnsInvoiceData() {
-        String invoiceText = """
+    void parsear_facturaValida_retornaDatos() {
+        String textoFactura = """
                 ADENDA
                 RESUMEN DE LA CUENTA: 119232155 AL 01/03/2026
                 01/02/2026 Saldo Anterior 497,26
@@ -20,31 +20,31 @@ class ClaroInvoiceParserTest {
                 TOTAL A PAGAR $ 494,40
                 """;
 
-        InvoiceData result = parser.parse(invoiceText);
+        DatosFactura resultado = parser.parsear(textoFactura);
 
-        assertEquals("119232155", result.cuenta());
-        assertEquals("494,40", result.monto());
-        assertEquals("UYU", result.moneda());
+        assertEquals("119232155", resultado.cuenta());
+        assertEquals("494,40", resultado.monto());
+        assertEquals("UYU", resultado.moneda());
     }
 
     @Test
-    void parse_withMissingAccount_throwsException() {
-        String textWithoutAccount = "Este texto no tiene datos de factura";
+    void parsear_sinCuenta_lanzaExcepcion() {
+        String textoSinCuenta = "Este texto no tiene datos de factura";
 
-        InvoiceParseException ex = assertThrows(
-                InvoiceParseException.class,
-                () -> parser.parse(textWithoutAccount)
+        ParserException ex = assertThrows(
+                ParserException.class,
+                () -> parser.parsear(textoSinCuenta)
         );
         assertTrue(ex.getMessage().contains("cuenta"));
     }
 
     @Test
-    void parse_withMissingAmount_throwsException() {
-        String textWithoutAmount = "RESUMEN DE LA CUENTA: 119232155 AL 01/03/2026\nSin monto";
+    void parsear_sinMonto_lanzaExcepcion() {
+        String textoSinMonto = "RESUMEN DE LA CUENTA: 119232155 AL 01/03/2026\nSin monto";
 
-        InvoiceParseException ex = assertThrows(
-                InvoiceParseException.class,
-                () -> parser.parse(textWithoutAmount)
+        ParserException ex = assertThrows(
+                ParserException.class,
+                () -> parser.parsear(textoSinMonto)
         );
         assertTrue(ex.getMessage().contains("monto"));
     }

@@ -18,7 +18,7 @@ class InvoiceControllerTest {
     private MockMvc mockMvc;
 
     @Test
-    void parseInvoice_withValidPdf_returns200WithData() throws Exception {
+    void parsear_conPdfValido_retorna200() throws Exception {
         byte[] pdfBytes = getClass().getClassLoader()
                 .getResourceAsStream("sample-invoice.pdf")
                 .readAllBytes();
@@ -26,7 +26,7 @@ class InvoiceControllerTest {
         MockMultipartFile file = new MockMultipartFile(
                 "file", "factura.pdf", "application/pdf", pdfBytes);
 
-        mockMvc.perform(multipart("/api/v1/invoice/parse").file(file))
+        mockMvc.perform(multipart("/api/factura/parsear").file(file))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.cuenta").value("119232155"))
                 .andExpect(jsonPath("$.monto").value("494,40"))
@@ -34,21 +34,21 @@ class InvoiceControllerTest {
     }
 
     @Test
-    void parseInvoice_withEmptyFile_returns400() throws Exception {
+    void parsear_conArchivoVacio_retorna400() throws Exception {
         MockMultipartFile file = new MockMultipartFile(
                 "file", "empty.pdf", "application/pdf", new byte[0]);
 
-        mockMvc.perform(multipart("/api/v1/invoice/parse").file(file))
+        mockMvc.perform(multipart("/api/factura/parsear").file(file))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").isNotEmpty());
     }
 
     @Test
-    void parseInvoice_withInvalidFile_returns400() throws Exception {
+    void parsear_conArchivoInvalido_retorna400() throws Exception {
         MockMultipartFile file = new MockMultipartFile(
-                "file", "not-a-pdf.txt", "text/plain", "hello".getBytes());
+                "file", "no-es-pdf.txt", "text/plain", "hola".getBytes());
 
-        mockMvc.perform(multipart("/api/v1/invoice/parse").file(file))
+        mockMvc.perform(multipart("/api/factura/parsear").file(file))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").isNotEmpty());
     }
