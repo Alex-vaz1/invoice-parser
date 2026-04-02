@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claro - Parser de Facturas</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        .sub { color: #888; font-size: 14px; margin-bottom: 25px; }
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: border-color 0.2s;
+        }
+        .upload-area:hover { border-color: #e02020; }
+        .upload-area.has-file { border-color: #4caf50; background: #f9fff9; }
+        .upload-area p { color: #888; font-size: 14px; }
+        .file-name { color: #333; font-weight: bold; font-size: 14px; }
+        input[type="file"] { display: none; }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #e02020;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        button:hover:not(:disabled) { background: #c01010; }
+        .resultado {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+        .resultado.ok { background: #e8f5e9; display: block; }
+        .resultado.error { background: #ffebee; display: block; }
+        .dato { margin-bottom: 12px; }
+        .dato label { font-size: 12px; color: #888; display: block; }
+        .dato span { font-size: 22px; font-weight: bold; color: #333; }
+        .error-msg { color: #c62828; font-size: 14px; }
+        .loading { text-align: center; color: #888; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Claro Invoice Parser</h1>
+        <p class="sub">Subi tu factura de Claro en PDF</p>
+
+        <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+            <p id="uploadText">Toca para seleccionar el PDF</p>
+        </div>
+        <input type="file" id="fileInput" accept=".pdf">
+
+        <button id="btn" onclick="parsear()" disabled>Parsear factura</button>
+
+        <div class="resultado" id="resultado"></div>
+    </div>
+
+    <script>
+        var archivo = null;
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            archivo = e.target.files[0];
+            if (archivo) {
+                document.getElementById('uploadText').innerHTML =
+                    '<span class="file-name">' + archivo.name + '</span>';
+                document.getElementById('uploadArea').classList.add('has-file');
+                document.getElementById('btn').disabled = false;
+            }
+        });
+
+        function parsear() {
+            var btn = document.getElementById('btn');
+            var res = document.getElementById('resultado');
+            btn.disabled = true;
+            btn.textContent = 'Parseando...';
+            res.className = 'resultado';
+            res.innerHTML = '';
+
+            var formData = new FormData();
+            formData.append('file', archivo);
+
+            fetch('/api/factura/parsear', { method: 'POST', body: formData })
+                .then(function(r) { return r.json().then(function(d) { return {ok: r.ok, data: d}; }); })
+                .then(function(r) {
+                    if (r.ok) {
+                        res.className = 'resultado ok';
+                        res.innerHTML =
+                            '<div class="dato"><label>Cuenta</label><span>' + r.data.cuenta + '</span></div>' +
+                            '<div class="dato"><label>Monto</label><span>$ ' + r.data.monto + '</span></div>' +
+                            '<div class="dato"><label>Moneda</label><span>' + r.data.moneda + '</span></div>';
+                    } else {
+                        res.className = 'resultado error';
+                        res.innerHTML = '<p class="error-msg">' + r.data.error + '</p>';
+                    }
+                })
+                .catch(function(err) {
+                    res.className = 'resultado error';
+                    res.innerHTML = '<p class="error-msg">Error de conexion</p>';
+                })
+                .finally(function() {
+                    btn.disabled = false;
+                    btn.textContent = 'Parsear factura';
+                });
+        }
+    </script>
+</body>
+</html>
